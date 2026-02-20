@@ -48,9 +48,25 @@ def evaluate_feature_subsets(X, y, importances):
     
     return pd.DataFrame(resultados)
 
+def shap_analysis(model, X_test):
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_test)
+    
+    print("\nImportancia global por SHAP:")
+    shap_importance = pd.Series(
+        np.abs(shap_values).mean(axis=(0, 2)),
+        index=X_test.columns
+    ).sort_values(ascending=False)
+    
+    for exam, score in shap_importance.items():
+        print(f"  {exam}: {score:.4f}")
+    
+    return shap_importance
+
 if __name__ == "__main__":
     X, y_encoded, le = load_data()
     model, importances, X_test, y_test = get_feature_importance(X, y_encoded)
     print("\nEvaluando subconjuntos de exámenes:")
     resultados = evaluate_feature_subsets(X, y_encoded, importances)
-
+    print("\nAnálisis SHAP:")
+    shap_importance = shap_analysis(model, X_test)
